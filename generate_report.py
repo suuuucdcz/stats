@@ -821,80 +821,125 @@ html_content = f"""<!DOCTYPE html>
         /* Mobile layout styling */
         @media (max-width: 768px) {{
             body {{
-                padding: 1rem;
+                padding: 0.75rem;
             }}
             header {{
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 1.25rem;
-                margin-bottom: 1.5rem;
-            }}
-            .header-title h1 {{
-                font-size: 2rem;
-            }}
-            .header-controls {{
-                width: 100%;
-                justify-content: space-between;
-            }}
-            .tabs {{
-                display: flex;
-                flex-wrap: wrap;
-                width: 100%;
-                border-radius: 12px;
-                margin-bottom: 1.5rem;
-                gap: 2px;
-            }}
-            .tab-btn {{
-                flex: 1 1 calc(50% - 4px);
-                text-align: center;
-                padding: 0.5rem 0.6rem;
-                font-size: 0.78rem;
-            }}
-            .stats-grid {{
-                grid-template-columns: 1fr;
                 gap: 1rem;
                 margin-bottom: 1.5rem;
             }}
+            .header-title h1 {{
+                font-size: 1.85rem;
+            }}
+            .header-controls {{
+                flex-direction: column;
+                width: 100%;
+                gap: 0.75rem;
+            }}
+            .header-controls select,
+            .header-controls button,
+            .header-controls a {{
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }}
+            .tabs {{
+                display: flex;
+                overflow-x: auto;
+                white-space: nowrap;
+                width: 100%;
+                padding: 4px;
+                border-radius: 14px;
+                margin-bottom: 1.5rem;
+                gap: 4px;
+                -webkit-overflow-scrolling: touch;
+            }}
+            .tabs::-webkit-scrollbar {{
+                display: none; /* Hide scrollbar for clean native look */
+            }}
+            .tab-btn {{
+                flex: 0 0 auto;
+                padding: 0.5rem 1rem;
+                font-size: 0.82rem;
+            }}
+            .stats-grid {{
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
+            }}
+            .stat-card {{
+                padding: 1.25rem;
+            }}
             .stat-value {{
-                font-size: 2rem;
+                font-size: 1.85rem;
             }}
             .chart-card, .section-card {{
-                padding: 1.25rem;
-                margin-bottom: 1.5rem;
+                padding: 1rem;
+                margin-bottom: 1.25rem;
             }}
             .card-title-container {{
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 1rem;
+                gap: 0.75rem;
             }}
             .calendar-grid {{
-                gap: 0.25rem;
+                gap: 4px;
+            }}
+            .weekday-label {{
+                font-size: 0.7rem;
             }}
             .calendar-day {{
-                padding: 0.25rem;
-                border-radius: 8px;
+                aspect-ratio: 1 / 1.1;
+                padding: 0.35rem 0.2rem;
+                border-radius: 10px;
+                justify-content: flex-start;
+                align-items: center;
+                gap: 2px;
             }}
             .day-num {{
-                font-size: 0.9rem;
+                font-size: 0.85rem;
+            }}
+            .day-vans-status {{
+                flex-direction: row;
+                justify-content: center;
+                gap: 3px;
+                width: 100%;
+                margin-top: 2px;
             }}
             .van-mini-bar {{
-                height: 14px;
-                font-size: 0.55rem;
-                padding: 0 0.2rem;
-                border-radius: 4px;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                padding: 0;
+                justify-content: center;
+                border: none;
+                flex: 0 0 auto;
             }}
-            .van-mini-bar span:last-child {{
-                display: none; /* Hide prices on very small screens to fit initials */
+            .van-mini-bar span {{
+                display: none !important; /* Hide all text on mobile to avoid overflow */
+            }}
+            .van-mini-bar.avail {{
+                background-color: var(--color-avail) !important;
+            }}
+            .van-mini-bar.res {{
+                background-color: var(--color-res) !important;
+            }}
+            .van-mini-bar.unavail {{
+                background-color: var(--color-unavail) !important;
             }}
             .legend-block {{
                 flex-wrap: wrap;
-                gap: 0.75rem;
+                gap: 0.65rem;
+                font-size: 0.75rem;
             }}
             .table-filters {{
                 flex-direction: column;
+                gap: 0.5rem;
             }}
             .shop-dashboard {{
                 grid-template-columns: 1fr;
+                gap: 1.25rem;
             }}
         }}
     </style>
