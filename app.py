@@ -62,7 +62,6 @@ def get_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/refresh', class_methods=['POST'])
 @app.route('/api/refresh', methods=['POST'])
 def trigger_refresh():
     global scrape_status
