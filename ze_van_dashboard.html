@@ -1262,6 +1262,20 @@
                         </div>
                     </div>
 
+                    <!-- Calendar Sync -->
+                    <div class="section-card glass-card" style="margin-bottom: 0;">
+                        <div class="chart-title">Synchronisation Google Calendar</div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
+                            Abonnez-vous à vos réservations en temps réel depuis Google Calendar, Apple Calendar ou Outlook.
+                        </p>
+                        <div class="info-list">
+                            <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; border-bottom: none; padding-bottom: 0;">
+                                <span class="info-label">Lien du flux iCal (cliquez pour sélectionner) :</span>
+                                <input type="text" id="ical-url-input" class="search-input" readonly style="width: 100%; font-size: 0.72rem; padding: 0.5rem 0.8rem; background: rgba(0,0,0,0.2);" onclick="this.select()" value="Chargement du flux...">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Security Cards -->
                     <div class="section-card glass-card" style="margin-bottom: 0;">
                         <div class="chart-title">Statut d'Audit de Sécurité</div>
@@ -1336,6 +1350,11 @@
         document.addEventListener("DOMContentLoaded", () => {
             // Check if hosted or local file
             if (window.location.protocol.startsWith('http')) {
+                const icalInput = document.getElementById("ical-url-input");
+                if (icalInput) {
+                    icalInput.value = window.location.origin + "/api/calendar.ics";
+                }
+
                 // Fetch dynamic data from the server
                 fetch('/api/data')
                     .then(res => res.json())
@@ -1354,6 +1373,10 @@
                 // Local file: hide server refresh button since there's no server backend
                 const btn = document.getElementById("btn-refresh");
                 if (btn) btn.style.display = "none";
+                const icalInput = document.getElementById("ical-url-input");
+                if (icalInput) {
+                    icalInput.value = "Disponible après déploiement sur Render";
+                }
             }
 
             detectBookingsFromDailyRecords();
