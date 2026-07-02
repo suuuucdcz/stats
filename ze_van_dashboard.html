@@ -504,6 +504,18 @@
             color: var(--color-unavail);
         }
         
+        .van-lbl-long {
+            display: inline;
+        }
+        
+        .van-lbl-short {
+            display: none;
+        }
+        
+        .van-price-lbl {
+            display: inline;
+        }
+        
         /* Table controls */
         .table-filters {
             display: flex;
@@ -878,16 +890,27 @@
                 margin-top: 2px;
             }
             .van-mini-bar {
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                padding: 0;
+                padding: 2px 0;
+                font-size: 0.52rem;
+                font-weight: 800;
+                border-radius: 4px;
+                line-height: 1;
+                height: auto;
+                flex: 1;
+                display: inline-flex;
                 justify-content: center;
+                align-items: center;
                 border: none;
-                flex: 0 0 auto;
             }
-            .van-mini-bar span {
-                display: none !important; /* Hide all text on mobile to avoid overflow */
+            .van-lbl-long {
+                display: none !important;
+            }
+            .van-lbl-short {
+                display: inline !important;
+                color: #fff !important;
+            }
+            .van-price-lbl {
+                display: none !important;
             }
             .van-mini-bar.avail {
                 background-color: var(--color-avail) !important;
@@ -1291,6 +1314,12 @@
             "T7 California Beach Nomade": "Nomade",
             "T6.1 California Beach Camper": "Camper",
             "T7 California Beach Routard": "Routard"
+        };
+        
+        const vanShortNames = {
+            "T7 California Beach Nomade": "No",
+            "T6.1 California Beach Camper": "Ca",
+            "T7 California Beach Routard": "Ro"
         };
         
         const orderedVans = [
@@ -1718,8 +1747,9 @@
                         
                         bar.className = `van-mini-bar ${statusCls}`;
                         bar.innerHTML = `
-                            <span>${vanInitials[vanName] || 'Van'}</span>
-                            <span>${statusText}</span>
+                            <span class="van-lbl-long">${vanInitials[vanName] || 'Van'}</span>
+                            <span class="van-lbl-short">${vanShortNames[vanName] || 'V'}</span>
+                            <span class="van-price-lbl">${statusText}</span>
                         `;
                         bar.title = `${vanName} - ${r.status} (${r.price}€)`;
                         vansStatusDiv.appendChild(bar);
