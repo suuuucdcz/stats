@@ -139,6 +139,14 @@ for cal in calendars:
         except Exception as e:
             print(f"    Error fetching {month}/{year}: {e}")
 
+# Check if we retrieved anything
+import sys
+if len(all_records) == 0:
+    print("\n[!] CRITICAL ERROR: Scraper retrieved 0 records.")
+    print("    This usually means the target website (ze-van.fr hosted on o2switch) is blocking this server's IP address (Render).")
+    print("    Aborting CSV overwrite to protect existing database.")
+    sys.exit(1)
+
 # Save to workspace CSV
 output_csv = "ze_van_availability.csv"
 with open(output_csv, "w", encoding="utf-8-sig", newline="") as f:
