@@ -4,6 +4,7 @@ import re
 import csv
 import time
 import os
+import sys
 from datetime import datetime, timedelta
 
 # Target AJAX URL
@@ -53,6 +54,35 @@ for i in range(48):
 
 months_to_scrape = sorted(list(set(months_to_scrape)))
 
+# Helper for requests (direct or via proxy)
+def make_request(target_url, data_dict, headers_dict, proxy=None):
+    encoded_data = urllib.parse.urlencode(data_dict).encode("utf-8")
+    req = urllib.request.Request(target_url, data=encoded_data, headers=headers_dict)
+    if proxy:
+        proxy_handler = urllib.request.ProxyHandler({'http': proxy, 'https': proxy})
+        opener = urllib.request.build_opener(proxy_handler)
+    else:
+        opener = urllib.request.build_opener()
+    
+    with opener.open(req, timeout=10) as response:
+        return response.read().decode("utf-8")
+
+# Fetch proxy list
+proxy_list = []
+def get_free_proxies():
+    print("  [Proxy] Fetching free HTTP proxy list from ProxyScrape...")
+    p_url = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=5000&country=all&ssl=all&anonymity=all"
+    p_req = urllib.request.Request(p_url, headers={"User-Agent": "Mozilla/5.0"})
+    try:
+        with urllib.request.urlopen(p_req, timeout=8) as res:
+            text = res.read().decode("utf-8", errors="ignore")
+            proxies = [p.strip() for p in text.strip().splitlines() if ":" in p]
+            print(f"  [Proxy] Successfully fetched {len(proxies)} proxies.")
+            return proxies
+    except Exception as e:
+        print(f"  [Proxy] Failed to fetch proxy list: {e}")
+        return []
+
 print("Months to scrape:", months_to_scrape)
 all_records = []
 
@@ -93,57 +123,71 @@ for cal in calendars:
             "show_first_available_date": "0"
         }
         
-        encoded_data = urllib.parse.urlencode(data).encode("utf-8")
+        req_headers = {
+            "Accept": "*/*",
+            "Accept-Language": "fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
+            "X-Requested-With": "XMLHttpRequest",
+            "Origin": "https://www.ze-van.fr",
+            "Referer": cal["referer"]
+        }
         
-        req = urllib.request.Request(
-            url,
-            data=encoded_data,
-            headers={
-                "Accept": "*/*",
-                "Accept-Language": "fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3",
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
-                "X-Requested-With": "XMLHttpRequest",
-                "Origin": "https://www.ze-van.fr",
-                "Referer": cal["referer"]
-            }
-        )
-        
+        html = None
+        # 1. Try direct request
         try:
-            with urllib.request.urlopen(req) as response:
-                html = response.read().decode("utf-8")
-                
-                # Regex to extract day options
-                pattern = r'<div\s+class="([^"]*wpbs-date[^"]*)"[^>]*data-year="(\d+)"[^>]*data-month="(\d+)"[^>]*data-day="(\d+)"[^>]*data-price="(\d+)"'
-                matches = re.findall(pattern, html)
-                
-                for cls, y, m, d, price in matches:
-                    status = "Inconnu"
-                    for class_key, status_val in cal["mapping"].items():
-                        if class_key in cls:
-                            status = status_val
-                            break
-                    
-                    date_str = f"{y}-{m.zfill(2)}-{d.zfill(2)}"
-                    all_records.append({
-                        "van_name": cal["name"],
-                        "calendar_id": cal["id"],
-                        "date": date_str,
-                        "year": y,
-                        "month": m,
-                        "day": d,
-                        "price": price,
-                        "status": status
-                    })
-            time.sleep(0.4)
+            html = make_request(url, data, req_headers)
         except Exception as e:
-            print(f"    Error fetching {month}/{year}: {e}")
+            # 2. Try with proxies on failure (or if hosted on Render)
+            print(f"    Direct request failed/blocked ({e}). Switching to free proxies...")
+            if not proxy_list:
+                proxy_list = get_free_proxies()
+            
+            success = False
+            for p in list(proxy_list):
+                try:
+                    print(f"    Trying proxy: {p}...")
+                    html = make_request(url, data, req_headers, proxy=p)
+                    success = True
+                    print("    [+] Proxy request succeeded!")
+                    break
+                except Exception as pe:
+                    if p in proxy_list:
+                        proxy_list.remove(p)
+            
+            if not success:
+                print(f"    [-] Error: All proxies failed for {month:02d}/{year}.")
+        
+        if html:
+            # Regex to extract day options
+            pattern = r'<div\s+class="([^"]*wpbs-date[^"]*)"[^>]*data-year="(\d+)"[^>]*data-month="(\d+)"[^>]*data-day="(\d+)"[^>]*data-price="(\d+)"'
+            matches = re.findall(pattern, html)
+            
+            for cls, y, m, d, price in matches:
+                status = "Inconnu"
+                for class_key, status_val in cal["mapping"].items():
+                    if class_key in cls:
+                        status = status_val
+                        break
+                
+                date_str = f"{y}-{m.zfill(2)}-{d.zfill(2)}"
+                all_records.append({
+                    "van_name": cal["name"],
+                    "calendar_id": cal["id"],
+                    "date": date_str,
+                    "year": y,
+                    "month": m,
+                    "day": d,
+                    "price": price,
+                    "status": status
+                })
+            # Sleep slightly to prevent rate limits
+            time.sleep(0.4)
 
 # Check if we retrieved anything
-import sys
 if len(all_records) == 0:
     print("\n[!] CRITICAL ERROR: Scraper retrieved 0 records.")
-    print("    This usually means the target website (ze-van.fr hosted on o2switch) is blocking this server's IP address (Render).")
+    print("    This usually means the target website is blocking this server's IP address and all proxies failed.")
     print("    Aborting CSV overwrite to protect existing database.")
     sys.exit(1)
 
